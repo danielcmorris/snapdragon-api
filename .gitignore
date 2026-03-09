@@ -1,0 +1,26 @@
+# Build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+.vs/
+
+# Secrets / credentials — use appsettings.Development.json or env vars locally
+appsettings.json
+appsettings.Production.json
+appsettings.Staging.json
+
+# Credential files
+credentials/
+*.json.bak
+
+# WSL artifacts
+*:Zone.Identifier
+
+# Rider / JetBrains
+.idea/
+
+# dotnet publish output
+publish/

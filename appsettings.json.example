@@ -1,0 +1,34 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "GoogleAuth": {
+    "ClientId": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "AllowedEmails": [
+      "user@yourdomain.com"
+    ]
+  },
+  "GoogleCloud": {
+    "ProjectId": "your-gcp-project-id",
+    "CredentialPath": "../credentials/your-service-account.json",
+    "PlacesApiKey": "YOUR_PLACES_API_KEY",
+    "Buckets": {
+      "Invoice": "invoice-repository",
+      "Object": "object-repository",
+      "Proposal": "proposal-repository"
+    }
+  },
+  "VertexAi": {
+    "ProjectId": "your-gcp-project-id",
+    "Location": "us-central1",
+    "DataStoreId": "your-datastore-id",
+    "ModelId": "gemini-2.0-flash"
+  },
+  "ConnectionStrings": {
+    "Postgres": "Host=YOUR_DB_HOST;Port=5433;Database=snapdragon;Username=YOUR_USER;Password=YOUR_PASSWORD"
+  }
+}

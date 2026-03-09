@@ -1,0 +1,1154 @@
+{
+  "info": {
+    "name": "SnapdragonApi",
+    "description": "API collection for Snapdragon ERP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Google Login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"YOUR_GOOGLE_ID_TOKEN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google-login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "item": [
+        {
+          "name": "Login (Get User Info)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Onboarding",
+      "item": [
+        {
+          "name": "Create Company + Office + User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"Acme Corp\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Austin\",\n  \"state\": \"TX\",\n  \"zipCode\": \"78701\",\n  \"country\": \"USA\",\n  \"companyPhone\": \"512-555-1234\",\n  \"companyEmail\": \"info@acme.com\",\n  \"website\": \"https://acme.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"userEmail\": \"john.doe@acme.com\",\n  \"userPhone\": \"512-555-5678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/onboarding",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "onboarding"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Company",
+      "item": [
+        {
+          "name": "List Companies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/company?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/company/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1001,\n  \"name\": \"New Company\",\n  \"address\": \"456 Oak Ave\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zipCode\": \"75201\",\n  \"country\": \"USA\",\n  \"phone\": \"214-555-1234\",\n  \"email\": \"contact@newcompany.com\",\n  \"website\": \"https://newcompany.com\",\n  \"notes\": \"Sample company\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/company",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company"]
+            }
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Company Name\",\n  \"phone\": \"214-555-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/company/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/company/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Office",
+      "item": [
+        {
+          "name": "List Offices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/office?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "office"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "companyId", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Office",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/office/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "office", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Office",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"companyId\": \"00000000-0000-0000-0000-000000000000\",\n  \"name\": \"Headquarters\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Austin\",\n  \"state\": \"TX\",\n  \"zipCode\": \"78701\",\n  \"country\": \"USA\",\n  \"phone\": \"512-555-1234\",\n  \"email\": \"hq@company.com\",\n  \"isHeadquarters\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/office",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "office"]
+            }
+          }
+        },
+        {
+          "name": "Update Office",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Office Name\",\n  \"phone\": \"512-555-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/office/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "office", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Office",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/office/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "office", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/user?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "officeId", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"officeId\": \"00000000-0000-0000-0000-000000000000\",\n  \"email\": \"user@company.com\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"512-555-5678\",\n  \"jobTitle\": \"Manager\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Janet\",\n  \"jobTitle\": \"Senior Manager\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Warehouse",
+      "item": [
+        {
+          "name": "List Warehouses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouse?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouse"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "companyId", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Warehouse",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouse/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouse", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Warehouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"companyId\": \"00000000-0000-0000-0000-000000000000\",\n  \"name\": \"Main Warehouse\",\n  \"address\": \"789 Industrial Blvd\",\n  \"city\": \"Houston\",\n  \"state\": \"TX\",\n  \"zipCode\": \"77001\",\n  \"country\": \"USA\",\n  \"phone\": \"713-555-1234\",\n  \"email\": \"warehouse@company.com\",\n  \"capacity\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouse",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouse"]
+            }
+          }
+        },
+        {
+          "name": "Update Warehouse",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Warehouse\",\n  \"capacity\": 15000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouse/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouse", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Warehouse",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/warehouse/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "warehouse", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "MasterProduct",
+      "item": [
+        {
+          "name": "List Master Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/masterproduct?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "masterproduct"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "companyId", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "productType", "value": "", "disabled": true },
+                { "key": "manufacturer", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Master Product",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/masterproduct/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "masterproduct", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Master Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"companyId\": \"00000000-0000-0000-0000-000000000000\",\n  \"productId\": \"PROD-001\",\n  \"partNumber\": \"PN-12345\",\n  \"productName\": \"Sample Product\",\n  \"friendlyName\": \"Sample\",\n  \"productType\": \"Equipment\",\n  \"defaultCost\": 100.00,\n  \"defaultPrice\": 150.00,\n  \"status\": \"Active\",\n  \"priceLevelA\": 145.00,\n  \"priceLevelB\": 140.00,\n  \"priceLevelC\": 135.00,\n  \"priceLevelD\": 130.00,\n  \"priceLevelE\": 125.00,\n  \"manufacturer\": \"Acme Manufacturing\",\n  \"taxable\": true,\n  \"taxType\": \"Standard\",\n  \"description\": \"A sample product for testing\",\n  \"category\": \"Audio\",\n  \"subcategory\": \"Speakers\",\n  \"unitOfMeasure\": \"Each\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/masterproduct",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "masterproduct"]
+            }
+          }
+        },
+        {
+          "name": "Update Master Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Updated Product Name\",\n  \"defaultPrice\": 175.00,\n  \"status\": \"Discontinued\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/masterproduct/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "masterproduct", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Master Product",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/masterproduct/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "masterproduct", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/product?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "product"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "masterProductId", "value": "", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "isAvailable", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/product/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "product", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"masterProductId\": \"00000000-0000-0000-0000-000000000000\",\n  \"serialNumber\": \"SN-123456789\",\n  \"barcode\": \"1234567890123\",\n  \"condition\": \"New\",\n  \"notes\": \"Fresh from manufacturer\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/product",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "product"]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condition\": \"Used\",\n  \"isAvailable\": false,\n  \"notes\": \"Returned from rental\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/product/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "product", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/product/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "product", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stock",
+      "item": [
+        {
+          "name": "List Stock",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/stock?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stock"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "productId", "value": "", "disabled": true },
+                { "key": "warehouseId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Stock",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/stock/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stock", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"productId\": \"00000000-0000-0000-0000-000000000000\",\n  \"warehouseId\": \"00000000-0000-0000-0000-000000000000\",\n  \"quantity\": 100,\n  \"location\": \"Aisle 5, Shelf B\",\n  \"reorderPoint\": 10,\n  \"reorderQuantity\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stock"]
+            }
+          }
+        },
+        {
+          "name": "Update Stock",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 75,\n  \"location\": \"Aisle 5, Shelf C\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stock/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stock", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Stock",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/stock/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stock", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Allocation",
+      "item": [
+        {
+          "name": "List Allocations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/allocation?skip=0&take=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocation"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" },
+                { "key": "stockId", "value": "", "disabled": true },
+                { "key": "warehouseId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Allocation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/allocation/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocation", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Allocation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vid\": 1,\n  \"stockId\": \"00000000-0000-0000-0000-000000000000\",\n  \"warehouseId\": \"00000000-0000-0000-0000-000000000000\",\n  \"quantity\": 10,\n  \"startDate\": \"2026-02-10T00:00:00Z\",\n  \"endDate\": \"2026-02-15T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/allocation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocation"]
+            }
+          }
+        },
+        {
+          "name": "Update Allocation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 15,\n  \"endDate\": \"2026-02-20T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/allocation/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocation", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Allocation",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/allocation/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocation", ":id"],
+              "variable": [
+                { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Storage",
+      "item": [
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucket\": \"object-repository\",\n  \"path\": \"uploads/test.txt\",\n  \"contentBase64\": \"SGVsbG8gV29ybGQh\",\n  \"contentType\": \"text/plain\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/storage/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "storage", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Get Signed Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucket\": \"object-repository\",\n  \"path\": \"uploads/test.txt\",\n  \"expirationMinutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/storage/signed-link",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "storage", "signed-link"]
+            }
+          }
+        },
+        {
+          "name": "List Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucket\": \"object-repository\",\n  \"prefix\": \"uploads/\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/storage/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "storage", "list"]
+            }
+          }
+        },
+        {
+          "name": "Search Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucket\": \"object-repository\",\n  \"pattern\": \"*.txt\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/storage/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "storage", "search"]
+            }
+          }
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucket\": \"object-repository\",\n  \"path\": \"uploads/test.txt\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/storage/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "storage", "delete"]
+            }
+          }
+        },
+        {
+          "name": "Move File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceBucket\": \"object-repository\",\n  \"sourcePath\": \"uploads/test.txt\",\n  \"destinationBucket\": \"object-repository\",\n  \"destinationPath\": \"archive/test.txt\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/storage/move",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "storage", "move"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "VertexAI",
+      "item": [
+        {
+          "name": "Initiate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Analyze this document\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vertexai/initiate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vertexai", "initiate"]
+            }
+          }
+        },
+        {
+          "name": "Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"audio equipment rental\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vertexai/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vertexai", "search"]
+            }
+          }
+        },
+        {
+          "name": "Research",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What equipment is needed for a wedding?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vertexai/research",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vertexai", "research"]
+            }
+          }
+        },
+        {
+          "name": "Generate Proposal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventDetails\": {\n    \"eventName\": \"Corporate Event\",\n    \"eventDate\": \"2026-03-15\"\n  },\n  \"requirements\": \"Audio and lighting for 200 guests\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vertexai/proposal",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vertexai", "proposal"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interrogator",
+      "item": [
+        {
+          "name": "Get Event Setup Template",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/interrogator/event-setup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "interrogator", "event-setup"]
+            }
+          }
+        },
+        {
+          "name": "Interactive Setup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentSetup\": {},\n  \"userMessage\": \"I need equipment for a wedding on March 15th with 150 guests\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/interrogator/interactive-setup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "interrogator", "interactive-setup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
