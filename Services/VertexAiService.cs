@@ -38,7 +38,9 @@ public class VertexAiService : IVertexAiService
         _settings = settings.Value;
         _cloudSettings = cloudSettings.Value;
         _logger = logger;
-        _credential = GoogleCredential.FromFile(_cloudSettings.CredentialPath);
+        _credential = string.IsNullOrEmpty(_cloudSettings.CredentialPath)
+            ? GoogleCredential.GetApplicationDefault()
+            : GoogleCredential.FromFile(_cloudSettings.CredentialPath);
         _vectorSearch = vectorSearch;
     }
 
@@ -63,7 +65,7 @@ public class VertexAiService : IVertexAiService
             // Import documents into the Discovery Engine data store
             var clientBuilder = new DocumentServiceClientBuilder
             {
-                CredentialsPath = _cloudSettings.CredentialPath
+                CredentialsPath = CredPath
             };
             var client = await clientBuilder.BuildAsync();
 
@@ -107,7 +109,7 @@ public class VertexAiService : IVertexAiService
         {
             var clientBuilder = new SearchServiceClientBuilder
             {
-                CredentialsPath = _cloudSettings.CredentialPath
+                CredentialsPath = CredPath
             };
             var client = await clientBuilder.BuildAsync();
 
@@ -270,7 +272,7 @@ public class VertexAiService : IVertexAiService
         {
             var clientBuilder = new PredictionServiceClientBuilder
             {
-                CredentialsPath = _cloudSettings.CredentialPath,
+                CredentialsPath = CredPath,
                 Endpoint = $"{_settings.Location}-aiplatform.googleapis.com"
             };
             var client = await clientBuilder.BuildAsync();
@@ -383,7 +385,7 @@ Rules:
         {
             var clientBuilder = new PredictionServiceClientBuilder
             {
-                CredentialsPath = _cloudSettings.CredentialPath,
+                CredentialsPath = CredPath,
                 Endpoint = $"{_settings.Location}-aiplatform.googleapis.com"
             };
             var client = await clientBuilder.BuildAsync();
@@ -553,7 +555,7 @@ Output ONLY valid JSON, no markdown fences, no commentary.";
             // Use Gemini to score and rank candidates
             var clientBuilder = new PredictionServiceClientBuilder
             {
-                CredentialsPath = _cloudSettings.CredentialPath,
+                CredentialsPath = CredPath,
                 Endpoint = $"{_settings.Location}-aiplatform.googleapis.com"
             };
             var aiClient = await clientBuilder.BuildAsync();
@@ -801,6 +803,11 @@ ORDER BY legacy_product_name, rank";
 
         return response;
     }
+
+    // When CredentialPath is empty, leave CredentialsPath unset so the builder uses ADC.
+    private string? CredPath => string.IsNullOrEmpty(_cloudSettings.CredentialPath)
+        ? null
+        : _cloudSettings.CredentialPath;
 
     private static void CalculateBidTotals(Bid bid)
     {

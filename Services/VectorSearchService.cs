@@ -24,7 +24,9 @@ public class VectorSearchService : IVectorSearchService
     {
         _cloudSettings = cloudSettings.Value;
         _logger = logger;
-        _credential = GoogleCredential.FromFile(_cloudSettings.CredentialPath);
+        _credential = string.IsNullOrEmpty(_cloudSettings.CredentialPath)
+            ? GoogleCredential.GetApplicationDefault()
+            : GoogleCredential.FromFile(_cloudSettings.CredentialPath);
     }
 
     public async Task<MatchProductResponse> SearchProductsAsync(string searchText, Guid companyId, int maxResults = 5)

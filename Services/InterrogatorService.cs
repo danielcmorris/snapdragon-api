@@ -56,9 +56,10 @@ public class InterrogatorService : IInterrogatorService
 
         try
         {
+            var credPath = string.IsNullOrEmpty(_cloudSettings.CredentialPath) ? null : _cloudSettings.CredentialPath;
             var clientBuilder = new PredictionServiceClientBuilder
             {
-                CredentialsPath = _cloudSettings.CredentialPath,
+                CredentialsPath = credPath,
                 Endpoint = $"{_settings.Location}-aiplatform.googleapis.com"
             };
             var client = await clientBuilder.BuildAsync();

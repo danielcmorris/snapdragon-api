@@ -1,19 +1,26 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-
+# ── Stage 1: Build ──────────────────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+
 COPY ["SnapdragonApi.csproj", "."]
 RUN dotnet restore
-COPY . .
-RUN dotnet build -c Release -o /app/build
 
-FROM build AS publish
+COPY . .
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-FROM base AS final
+# ── Stage 2: Runtime ─────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
+# Run as non-root user (Cloud Run best practice)
+RUN adduser --disabled-password --gecos "" appuser
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY --from=build /app/publish .
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Cloud Run injects PORT (default 8080); ASP.NET Core reads ASPNETCORE_HTTP_PORTS
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "SnapdragonApi.dll"]

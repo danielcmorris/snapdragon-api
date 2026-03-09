@@ -1,0 +1,44 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/snapdragon/snapdragon-api:$COMMIT_SHA'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/snapdragon/snapdragon-api:latest'
+      - '.'
+
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/snapdragon/snapdragon-api'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'snapdragon-api'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/snapdragon/snapdragon-api:$COMMIT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--service-account=snapdragon@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--set-secrets=ConnectionStrings__Postgres=snapdragon-db-connection:latest,Jwt__Key=snapdragon-jwt-key:latest,GoogleAuth__ClientId=snapdragon-google-client-id:latest,GoogleCloud__PlacesApiKey=snapdragon-places-api-key:latest'
+      - '--set-env-vars=GoogleCloud__ProjectId=$PROJECT_ID,VertexAi__ProjectId=$PROJECT_ID,VertexAi__Location=us-central1,VertexAi__DataStoreId=snapdragonerp-datastore,VertexAi__ModelId=gemini-2.0-flash,GoogleCloud__Buckets__Invoice=invoice-repository,GoogleCloud__Buckets__Object=object-repository,GoogleCloud__Buckets__Proposal=proposal-repository'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/snapdragon/snapdragon-api:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/snapdragon/snapdragon-api:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

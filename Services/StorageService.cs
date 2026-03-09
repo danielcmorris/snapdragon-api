@@ -30,7 +30,9 @@ public class StorageService : IStorageService
     {
         _settings = settings.Value;
         _logger = logger;
-        _credential = GoogleCredential.FromFile(_settings.CredentialPath);
+        _credential = string.IsNullOrEmpty(_settings.CredentialPath)
+            ? GoogleCredential.GetApplicationDefault()
+            : GoogleCredential.FromFile(_settings.CredentialPath);
         _storageClient = StorageClient.Create(_credential);
     }
 
