@@ -1,5 +1,8 @@
-using Google.Api.Gax.Grpc;
-using Google.Maps.Places.V1;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using SnapdragonApi.DTOs;
 using SnapdragonApi.Models;
@@ -14,16 +17,30 @@ public interface IPlacesService
 
 public class PlacesService : IPlacesService
 {
-    private readonly PlacesClient _client;
+    private readonly string _apiKey;
     private readonly ILogger<PlacesService> _logger;
+
+    private readonly HttpClient _http = new(new SocketsHttpHandler
+    {
+        ConnectCallback = async (ctx, ct) =>
+        {
+            var addresses = await Dns.GetHostAddressesAsync(ctx.DnsEndPoint.Host, ct);
+            var ipv4 = addresses.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork)
+                       ?? addresses.First();
+            var socket = new Socket(ipv4.AddressFamily, SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+            await socket.ConnectAsync(new IPEndPoint(ipv4, ctx.DnsEndPoint.Port), ct);
+            return new NetworkStream(socket, ownsSocket: true);
+        }
+    });
+
+    private const string SearchTextUrl = "https://places.googleapis.com/v1/places:searchText";
+    private const string CompanyFieldMask = "places.displayName,places.formattedAddress,places.addressComponents,places.nationalPhoneNumber,places.websiteUri";
+    private const string AddressFieldMask = "places.formattedAddress,places.addressComponents";
 
     public PlacesService(IOptions<GoogleCloudSettings> settings, ILogger<PlacesService> logger)
     {
         _logger = logger;
-        _client = new PlacesClientBuilder
-        {
-            ApiKey = settings.Value.PlacesApiKey
-        }.Build();
+        _apiKey = settings.Value.PlacesApiKey;
     }
 
     public async Task<CompanyLookupResponse> LookupCompanyAsync(string name)
@@ -31,65 +48,25 @@ public class PlacesService : IPlacesService
         try
         {
             var query = IsDomainInput(name) ? DomainToSearchText(name) : name;
+            var places = await SearchTextAsync(query, CompanyFieldMask);
 
-            var request = new SearchTextRequest
-            {
-                TextQuery = query
-            };
-
-            var fieldMask = "places.displayName,places.formattedAddress,places.addressComponents,places.nationalPhoneNumber,places.websiteUri";
-            var callSettings = CallSettings.FromHeader("X-Goog-FieldMask", fieldMask);
-
-            var response = await _client.SearchTextAsync(request, callSettings);
-
-            if (response.Places == null || response.Places.Count == 0)
+            if (places == null || places.Count == 0)
                 return new CompanyLookupResponse { Found = false };
 
-            var place = response.Places[0];
-            var components = place.AddressComponents;
-
-            string? streetNumber = null;
-            string? route = null;
-            string? city = null;
-            string? state = null;
-            string? zip = null;
-            string? country = null;
-
-            if (components != null)
-            {
-                foreach (var c in components)
-                {
-                    var types = c.Types_;
-                    if (types.Contains("street_number"))
-                        streetNumber = c.LongText;
-                    else if (types.Contains("route"))
-                        route = c.LongText;
-                    else if (types.Contains("locality"))
-                        city = c.LongText;
-                    else if (types.Contains("administrative_area_level_1"))
-                        state = c.ShortText;
-                    else if (types.Contains("postal_code"))
-                        zip = c.LongText;
-                    else if (types.Contains("country"))
-                        country = c.LongText;
-                }
-            }
-
-            var street = streetNumber != null && route != null
-                ? $"{streetNumber} {route}"
-                : route ?? streetNumber;
+            var place = places[0];
+            var (street, city, state, zip, country) = ParseAddressComponents(place);
 
             return new CompanyLookupResponse
             {
                 Found = true,
-                CompanyName = place.DisplayName?.Text,
+                CompanyName = place["displayName"]?["text"]?.GetValue<string>(),
                 Address = street,
                 City = city,
                 State = state,
                 ZipCode = zip,
                 Country = country,
-                Phone = place.NationalPhoneNumber,
-                Website = place.WebsiteUri
+                Phone = place["nationalPhoneNumber"]?.GetValue<string>(),
+                Website = place["websiteUri"]?.GetValue<string>()
             };
         }
         catch (Exception ex)
@@ -103,52 +80,13 @@ public class PlacesService : IPlacesService
     {
         try
         {
-            var request = new SearchTextRequest
-            {
-                TextQuery = query
-            };
+            var places = await SearchTextAsync(query, AddressFieldMask);
 
-            var fieldMask = "places.formattedAddress,places.addressComponents";
-            var callSettings = CallSettings.FromHeader("X-Goog-FieldMask", fieldMask);
-
-            var response = await _client.SearchTextAsync(request, callSettings);
-
-            if (response.Places == null || response.Places.Count == 0)
+            if (places == null || places.Count == 0)
                 return new AddressValidationResponse { Valid = false };
 
-            var place = response.Places[0];
-            var components = place.AddressComponents;
-
-            string? streetNumber = null;
-            string? route = null;
-            string? city = null;
-            string? state = null;
-            string? zip = null;
-            string? country = null;
-
-            if (components != null)
-            {
-                foreach (var c in components)
-                {
-                    var types = c.Types_;
-                    if (types.Contains("street_number"))
-                        streetNumber = c.LongText;
-                    else if (types.Contains("route"))
-                        route = c.LongText;
-                    else if (types.Contains("locality"))
-                        city = c.LongText;
-                    else if (types.Contains("administrative_area_level_1"))
-                        state = c.ShortText;
-                    else if (types.Contains("postal_code"))
-                        zip = c.LongText;
-                    else if (types.Contains("country"))
-                        country = c.LongText;
-                }
-            }
-
-            var street = streetNumber != null && route != null
-                ? $"{streetNumber} {route}"
-                : route ?? streetNumber;
+            var place = places[0];
+            var (street, city, state, zip, country) = ParseAddressComponents(place);
 
             return new AddressValidationResponse
             {
@@ -158,7 +96,7 @@ public class PlacesService : IPlacesService
                 State = state,
                 ZipCode = zip,
                 Country = country,
-                FormattedAddress = place.FormattedAddress
+                FormattedAddress = place["formattedAddress"]?.GetValue<string>()
             };
         }
         catch (Exception ex)
@@ -168,14 +106,64 @@ public class PlacesService : IPlacesService
         }
     }
 
-    private static bool IsDomainInput(string input)
+    private async Task<JsonArray?> SearchTextAsync(string textQuery, string fieldMask)
     {
-        return input.Contains('.') && !input.Contains(' ');
+        var body = JsonSerializer.Serialize(new { textQuery });
+        var req = new HttpRequestMessage(HttpMethod.Post, SearchTextUrl)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json")
+        };
+        req.Headers.Add("X-Goog-Api-Key", _apiKey);
+        req.Headers.Add("X-Goog-FieldMask", fieldMask);
+
+        var resp = await _http.SendAsync(req);
+        resp.EnsureSuccessStatusCode();
+
+        var json = JsonNode.Parse(await resp.Content.ReadAsStringAsync());
+        return json?["places"]?.AsArray();
     }
+
+    private static (string? street, string? city, string? state, string? zip, string? country)
+        ParseAddressComponents(JsonNode? place)
+    {
+        string? streetNumber = null, route = null, city = null, state = null, zip = null, country = null;
+
+        var components = place?["addressComponents"]?.AsArray();
+        if (components != null)
+        {
+            foreach (var c in components)
+            {
+                var types = c?["types"]?.AsArray();
+                if (types == null) continue;
+                var typeList = types.Select(t => t?.GetValue<string>() ?? "").ToList();
+
+                if (typeList.Contains("street_number"))
+                    streetNumber = c?["longText"]?.GetValue<string>();
+                else if (typeList.Contains("route"))
+                    route = c?["longText"]?.GetValue<string>();
+                else if (typeList.Contains("locality"))
+                    city = c?["longText"]?.GetValue<string>();
+                else if (typeList.Contains("administrative_area_level_1"))
+                    state = c?["shortText"]?.GetValue<string>();
+                else if (typeList.Contains("postal_code"))
+                    zip = c?["longText"]?.GetValue<string>();
+                else if (typeList.Contains("country"))
+                    country = c?["longText"]?.GetValue<string>();
+            }
+        }
+
+        var street = streetNumber != null && route != null
+            ? $"{streetNumber} {route}"
+            : route ?? streetNumber;
+
+        return (street, city, state, zip, country);
+    }
+
+    private static bool IsDomainInput(string input) =>
+        input.Contains('.') && !input.Contains(' ');
 
     private static string DomainToSearchText(string domain)
     {
-        // Strip common TLDs and www prefix to get a company-friendly search term
         var name = domain
             .Replace("www.", "")
             .Replace("http://", "")

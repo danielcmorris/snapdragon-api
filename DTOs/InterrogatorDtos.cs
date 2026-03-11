@@ -1,5 +1,38 @@
 namespace SnapdragonApi.DTOs;
 
+public class ClientSetup
+{
+    public string? Name { get; set; }
+    public string? PrimaryContactFirstName { get; set; }
+    public string? PrimaryContactLastName { get; set; }
+    public string? PrimaryEmail { get; set; }
+    public string? PrimaryPhone { get; set; }
+    public string? CellPhone { get; set; }
+    public string? AccountManager { get; set; }
+    public string? InstallationAddressTitle { get; set; }
+    public string? InstallationAddress1 { get; set; }
+    public string? InstallationAddress2 { get; set; }
+    public string? InstallationCity { get; set; }
+    public string? InstallationState { get; set; }
+    public string? InstallationZip { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class InteractiveClientSetupRequest
+{
+    public string UserText { get; set; } = string.Empty;
+    public ClientSetup? ExistingSetup { get; set; }
+    public string? PreviousQuestion { get; set; }
+}
+
+public class InteractiveClientSetupResponse
+{
+    public ClientSetup ClientSetup { get; set; } = new();
+    public double CompletenessPercentage { get; set; }
+    public List<string> MissingFields { get; set; } = new();
+    public string? SuggestedNextQuestion { get; set; }
+}
+
 public class EventSetup
 {
     public string? ClientName { get; set; }

@@ -1,3 +1,4 @@
+using System.Data;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ public class ClientCommissionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ClientCommissionListResponse>> List(Guid clientId)
+    public async Task<ActionResult<List<ClientCommissionDto>>> List(Guid clientId)
     {
         var ctx = await GetSessionAsync();
         if (ctx == null) return Unauthorized(new { error = "Unable to identify user" });
@@ -32,70 +33,63 @@ public class ClientCommissionController : ControllerBase
         var client = await _db.Client.FindAsync(clientId);
         if (client == null || client.CompanyId != ctx.CompanyId) return NotFound();
 
-        var commissions = await _db.ClientCommission
-            .Where(c => c.ClientId == clientId && c.StatusId == 1)
-            .OrderBy(c => c.SortOrder)
-            .ThenBy(c => c.Name)
-            .ToListAsync();
-
-        if (commissions.Count == 0)
+        var results = await CallFunctionAsync(clientId);
+        if (results.Count == 0)
         {
-            // Seed from commission_type table (company-wide defaults)
-            var types = await _db.CommissionType
-                .Where(ct => ct.StatusId == 1)
-                .OrderBy(ct => ct.SortOrder)
-                .ThenBy(ct => ct.Name)
-                .ToListAsync();
+            await SeedCommissionsAsync(clientId, ctx);
+            results = await CallFunctionAsync(clientId);
+        }
 
-            var now = DateTime.UtcNow;
-            var defaults = types.Select(ct => new ClientCommission
+        return Ok(results);
+    }
+
+    [HttpPut("{commissionTypeId:int}")]
+    public async Task<ActionResult> Update(Guid clientId, int commissionTypeId, [FromBody] UpdateClientCommissionRequest request)
+    {
+        var ctx = await GetSessionAsync();
+        if (ctx == null) return Unauthorized(new { error = "Unable to identify user" });
+        if (ctx.UserLevel < 2) return StatusCode(403, new { error = "Insufficient permissions" });
+
+        var client = await _db.Client.FindAsync(clientId);
+        if (client == null || client.CompanyId != ctx.CompanyId) return NotFound();
+
+        var commissionType = await _db.CommissionType.FindAsync(commissionTypeId);
+        if (commissionType == null) return NotFound();
+
+        var existing = await _db.ClientCommission
+            .FirstOrDefaultAsync(c => c.ClientId == clientId && c.CommissionTypeId == commissionTypeId);
+
+        var now = DateTime.UtcNow;
+        if (existing != null)
+        {
+            existing.Rate = request.Rate;
+            existing.UpdatedById = ctx.UserId;
+            existing.UpdatedDate = now;
+        }
+        else
+        {
+            _db.ClientCommission.Add(new ClientCommission
             {
                 Id = Guid.NewGuid(),
                 ClientId = clientId,
-                CommissionTypeId = ct.Id,
-                Name = ct.Name,
-                Rate = ct.DefaultPercent,
-                SortOrder = ct.SortOrder,
+                CommissionTypeId = commissionTypeId,
+                Name = commissionType.Name,
+                Rate = request.Rate,
+                SortOrder = commissionType.SortOrder,
                 StatusId = 1,
                 CreatedById = ctx.UserId,
                 CreatedDate = now,
                 UpdatedById = ctx.UserId,
                 UpdatedDate = now,
-            }).ToList();
-
-            _db.ClientCommission.AddRange(defaults);
-            await _db.SaveChangesAsync();
-
-            commissions = defaults;
+            });
         }
 
-        return Ok(new ClientCommissionListResponse { Items = commissions.Select(ToDto).ToList() });
-    }
-
-    [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ClientCommissionDto>> Update(Guid clientId, Guid id, [FromBody] UpdateClientCommissionRequest request)
-    {
-        var ctx = await GetSessionAsync();
-        if (ctx == null) return Unauthorized(new { error = "Unable to identify user" });
-        if (ctx.UserLevel < 2) return StatusCode(403, new { error = "Insufficient permissions" });
-
-        var client = await _db.Client.FindAsync(clientId);
-        if (client == null || client.CompanyId != ctx.CompanyId) return NotFound();
-
-        var commission = await _db.ClientCommission
-            .FirstOrDefaultAsync(c => c.Id == id && c.ClientId == clientId);
-        if (commission == null) return NotFound();
-
-        commission.Rate = request.Rate;
-        commission.UpdatedById = ctx.UserId;
-        commission.UpdatedDate = DateTime.UtcNow;
-
         await _db.SaveChangesAsync();
-        return Ok(ToDto(commission));
+        return Ok();
     }
 
     [HttpPost("bulk-update")]
-    public async Task<ActionResult<ClientCommissionListResponse>> BulkUpdate(Guid clientId, [FromBody] BulkUpdateClientCommissionsRequest request)
+    public async Task<ActionResult<List<ClientCommissionDto>>> BulkUpdate(Guid clientId, [FromBody] BulkUpdateClientCommissionsRequest request)
     {
         var ctx = await GetSessionAsync();
         if (ctx == null) return Unauthorized(new { error = "Unable to identify user" });
@@ -104,31 +98,99 @@ public class ClientCommissionController : ControllerBase
         var client = await _db.Client.FindAsync(clientId);
         if (client == null || client.CompanyId != ctx.CompanyId) return NotFound();
 
-        var commissions = await _db.ClientCommission
-            .Where(c => c.ClientId == clientId && c.StatusId == 1)
+        var types = await _db.CommissionType
+            .Where(ct => ct.StatusId == 1)
             .ToListAsync();
 
-        foreach (var commission in commissions)
+        var now = DateTime.UtcNow;
+        foreach (var ct in types)
         {
-            commission.Rate = request.Rate;
-            commission.UpdatedById = ctx.UserId;
-            commission.UpdatedDate = DateTime.UtcNow;
+            var existing = await _db.ClientCommission
+                .FirstOrDefaultAsync(c => c.ClientId == clientId && c.CommissionTypeId == ct.Id);
+
+            if (existing != null)
+            {
+                existing.Rate = request.Rate;
+                existing.UpdatedById = ctx.UserId;
+                existing.UpdatedDate = now;
+            }
+            else
+            {
+                _db.ClientCommission.Add(new ClientCommission
+                {
+                    Id = Guid.NewGuid(),
+                    ClientId = clientId,
+                    CommissionTypeId = ct.Id,
+                    Name = ct.Name,
+                    Rate = request.Rate,
+                    SortOrder = ct.SortOrder,
+                    StatusId = 1,
+                    CreatedById = ctx.UserId,
+                    CreatedDate = now,
+                    UpdatedById = ctx.UserId,
+                    UpdatedDate = now,
+                });
+            }
         }
 
         await _db.SaveChangesAsync();
-
-        var ordered = commissions.OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
-        return Ok(new ClientCommissionListResponse { Items = ordered.Select(ToDto).ToList() });
+        return Ok(await CallFunctionAsync(clientId));
     }
 
-    private static ClientCommissionDto ToDto(ClientCommission c) => new()
+    private async Task<List<ClientCommissionDto>> CallFunctionAsync(Guid clientId)
     {
-        Id = c.Id,
-        ClientId = c.ClientId,
-        Name = c.Name,
-        Rate = c.Rate,
-        SortOrder = c.SortOrder,
-    };
+        var conn = _db.Database.GetDbConnection();
+        if (conn.State != ConnectionState.Open)
+            await conn.OpenAsync();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, default_percent, rate FROM client_commission_rates(@p0)";
+        var param = cmd.CreateParameter();
+        param.ParameterName = "p0";
+        param.Value = clientId;
+        cmd.Parameters.Add(param);
+
+        using var reader = await cmd.ExecuteReaderAsync();
+        var results = new List<ClientCommissionDto>();
+        while (await reader.ReadAsync())
+        {
+            results.Add(new ClientCommissionDto
+            {
+                CommissionTypeId = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                DefaultPercent = reader.GetDecimal(2),
+                Rate = reader.GetDecimal(3),
+            });
+        }
+        return results;
+    }
+
+    private async Task SeedCommissionsAsync(Guid clientId, UserSessionContext ctx)
+    {
+        var types = await _db.CommissionType
+            .Where(ct => ct.StatusId == 1)
+            .OrderBy(ct => ct.SortOrder)
+            .ThenBy(ct => ct.Name)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        _db.ClientCommission.AddRange(types.Select(ct => new ClientCommission
+        {
+            Id = Guid.NewGuid(),
+            ClientId = clientId,
+            CommissionTypeId = ct.Id,
+            Name = ct.Name,
+            Rate = ct.DefaultPercent,
+            SortOrder = ct.SortOrder,
+            StatusId = 1,
+            CreatedById = ctx.UserId,
+            CreatedDate = now,
+            UpdatedById = ctx.UserId,
+            UpdatedDate = now,
+        }));
+
+        await _db.SaveChangesAsync();
+    }
 
     private async Task<UserSessionContext?> GetSessionAsync()
     {

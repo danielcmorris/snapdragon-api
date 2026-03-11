@@ -35,4 +35,14 @@ public class InterrogatorController : ControllerBase
         var result = await _interrogatorService.ProcessInteractiveSetupAsync(request);
         return Ok(result);
     }
+
+    [HttpPost("client-setup")]
+    public async Task<ActionResult<InteractiveClientSetupResponse>> ClientSetup([FromBody] InteractiveClientSetupRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.UserText))
+            return BadRequest("User text is required");
+
+        var result = await _interrogatorService.ProcessInteractiveClientSetupAsync(request);
+        return Ok(result);
+    }
 }
